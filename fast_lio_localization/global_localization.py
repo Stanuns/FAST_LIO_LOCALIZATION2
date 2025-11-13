@@ -155,11 +155,12 @@ class FastLIOLocalization(Node):
         
         transformation, fitness = self.registration_at_scale(scan_tobe_mapped, global_map_in_FOV, initial=pose_estimation, scale=1)
         
-        if fitness > self.get_parameter("localization_threshold").value:
-            self.T_map_to_odom = transformation
-            self.publish_odom(transformation)
-        else:
-            self.get_logger().warn(f"Fitness score {fitness} less than localization threshold {self.get_parameter('localization_threshold').value}")
+        # if fitness > self.get_parameter("localization_threshold").value:
+        self.T_map_to_odom = transformation
+        self.publish_odom(transformation)
+        self.get_logger().warn(f"Fitness score {fitness} -----test------")
+        # else:
+            # self.get_logger().warn(f"Fitness score {fitness} less than localization threshold {self.get_parameter('localization_threshold').value}")
 
     def voxel_down_sample(self, pcd, voxel_size):
         # print(pcd)
@@ -193,9 +194,10 @@ class FastLIOLocalization(Node):
     def cb_initialize_pose(self, msg):
         initial_pose = self.pose_to_mat(msg.pose.pose)
         self.initialized = True
-        self.get_logger().info("Initial pose received.")
+        self.get_logger().info("Initial pose received.-----------test---------")
         
         if self.cur_scan is not None:
+            self.get_logger().info("cur_scan is not None.-----------test---------")
             self.global_localization(initial_pose)
             
     def publish_odom(self, transform):
