@@ -23,7 +23,7 @@ def generate_launch_description():
 
     # Declare arguments
     declare_use_sim_time_cmd = DeclareLaunchArgument(
-        "use_sim_time", default_value="false", description="Use simulation (Gazebo) clock if true"
+        "use_sim_time", default_value="true", description="Use simulation (Gazebo) clock if true"
     )
     declare_config_path_cmd = DeclareLaunchArgument(
         "config_path", default_value=default_config_path, description="Yaml config file path"
@@ -101,7 +101,7 @@ def generate_launch_description():
     ld.add_action(declare_pcd_map_topic)
 
     ld.add_action(fast_lio_node)
-    ld.add_action(rviz_node)
+    # ld.add_action(rviz_node)
     ld.add_action(global_localization_node)
     ld.add_action(transform_fusion_node)
     ld.add_action(pcd_publisher_node)

@@ -158,7 +158,7 @@ class FastLIOLocalization(Node):
         # if fitness > self.get_parameter("localization_threshold").value:
         self.T_map_to_odom = transformation
         self.publish_odom(transformation)
-        self.get_logger().warn(f"Fitness score {fitness} -----test------")
+        self.get_logger().warn(f"Fitness score {fitness} -----debug------")
         # else:
             # self.get_logger().warn(f"Fitness score {fitness} less than localization threshold {self.get_parameter('localization_threshold').value}")
 
@@ -194,11 +194,48 @@ class FastLIOLocalization(Node):
     def cb_initialize_pose(self, msg):
         initial_pose = self.pose_to_mat(msg.pose.pose)
         self.initialized = True
-        self.get_logger().info("Initial pose received.-----------test---------")
+        self.get_logger().info("Initial pose received.")
+
+        #此initial_pose是map->body(base_footprint/base_link)的坐标，
+        #需要将此坐标转换成map->camera_init的坐标(完整的坐标:map->camera_init->body->base_footprint->base_link)
+        # 获取当前camera_init->body的变换
+        try:
+            # 查找camera_init到body的变换
+            transform = self.tf_buffer.lookup_transform("camera_init", "body", rclpy.time.Time())
+            T_camera_init_to_body = self.transform_to_mat(transform)
+            
+            # 计算map->camera_init的变换
+            # map->body = map->camera_init * camera_init->body
+            # 所以 map->camera_init = map->body * body->camera_init
+            T_body_to_camera_init = self.inverse_se3(T_camera_init_to_body)
+            initial_pose2 = np.matmul(initial_pose, T_body_to_camera_init)
+            
+            self.get_logger().info("Successfully converted initial pose to map->camera_init transform")
+            
+        except Exception as e:
+            self.get_logger().error(f"Failed to get TF transform: {str(e)}")
+            self.get_logger().info("Using original initial pose as fallback")
+
         
         if self.cur_scan is not None:
-            self.get_logger().info("cur_scan is not None.-----------test---------")
-            self.global_localization(initial_pose)
+            self.get_logger().info("cur_scan is not None.")
+            self.global_localization(initial_pose2)
+
+    def transform_to_mat(self, transform):
+        ## 将geometry_msgs/Transform转换为4x4变换矩阵
+        trans = np.eye(4)
+        trans[0, 3] = transform.transform.translation.x
+        trans[1, 3] = transform.transform.translation.y
+        trans[2, 3] = transform.transform.translation.z
+        
+        quat = [
+            transform.transform.rotation.x,
+            transform.transform.rotation.y, 
+            transform.transform.rotation.z,
+            transform.transform.rotation.w
+        ]
+        trans[:3, :3] = tf_transformations.quaternion_matrix(quat)[:3, :3]
+        return trans
             
     def publish_odom(self, transform):
         odom_msg = Odometry()
