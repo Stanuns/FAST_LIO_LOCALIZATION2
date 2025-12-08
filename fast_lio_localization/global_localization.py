@@ -196,9 +196,10 @@ class FastLIOLocalization(Node):
         self.initialized = True
         self.get_logger().info("Initial pose received.")
 
+        #sunwei
         #此initial_pose是map->body(base_footprint/base_link)的坐标，
         #需要将此坐标转换成map->camera_init的坐标(完整的坐标:map->camera_init->body->base_footprint->base_link)
-        # 获取当前camera_init->body的变换
+        #获取当前camera_init->body的变换
         try:
             # 查找camera_init到body的变换
             transform = self.tf_buffer.lookup_transform("camera_init", "body", rclpy.time.Time())
@@ -219,6 +220,7 @@ class FastLIOLocalization(Node):
         
         if self.cur_scan is not None:
             self.get_logger().info("cur_scan is not None.")
+            # self.global_localization(initial_pose)
             self.global_localization(initial_pose2)
 
     def transform_to_mat(self, transform):
