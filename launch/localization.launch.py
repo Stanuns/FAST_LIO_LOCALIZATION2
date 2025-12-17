@@ -55,13 +55,13 @@ def generate_launch_description():
         executable="global_localization.py",
         name="global_localization",
         output="screen",
-        parameters=[{"map_voxel_size": 0.4,
-                     "scan_voxel_size": 0.1,
-                     "freq_localization": 0.5,
-                     "freq_global_map": 0.25,
+        parameters=[{"map_voxel_size": 0.4, #0.4
+                     "scan_voxel_size": 0.1, #0.1
+                     "freq_localization": 0.5, #0.5
+                     "freq_global_map": 0.25,  #0.25
                      "localization_threshold": 0.8,
                      "fov": 6.28319,
-                     "fov_far": 300,
+                     "fov_far": 30, #300
                      "pcd_map_path": pcd_map_path,
                      "pcd_map_topic": pcd_map_topic}],
     )

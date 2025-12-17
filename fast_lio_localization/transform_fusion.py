@@ -28,7 +28,7 @@ class TransformFusion(Node):
         self.create_subscription(Odometry, "/Odometry", self.cb_save_cur_odom, 1)
         self.create_subscription(Odometry, "/map_to_odom", self.cb_save_map_to_odom, 1)
 
-        self.freq_pub_localization = 50
+        self.freq_pub_localization = 20
         self.timer = self.create_timer(1/self.freq_pub_localization, self.transform_fusion)
         # threading.Thread(target=self.transform_fusion, daemon=True).start()
 

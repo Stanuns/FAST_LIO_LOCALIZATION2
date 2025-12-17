@@ -16,6 +16,9 @@ import numpy as np
 import tf2_ros
 import tf_transformations
 import ros2_numpy
+from sensor_msgs.msg import PointCloud2, PointField
+from sensor_msgs_py import point_cloud2
+import numpy as np
 
 
 class FastLIOLocalization(Node):
@@ -117,6 +120,35 @@ class FastLIOLocalization(Node):
             msg.point_step = 12
             
         publisher.publish(msg)
+
+        # """
+        # pc: numpy array, shape (N,3) or (N,4)
+        # 解决warning: 
+        # [global_localization.py-2] The 'rgb' field is not present in the input dictionary. The 'rgb' field will be set to zero. 
+        # [global_localization.py-2] The 'intensity' field is not present in the input dictionary. The 'intensity' field will be set to zero.
+        # """
+
+        # if pc.shape[1] >= 4:
+        #     points = pc[:, :4]
+        # else:
+        #     # 补 intensity = 0
+        #     intensity = np.zeros((pc.shape[0], 1), dtype=np.float32)
+        #     points = np.hstack((pc[:, :3], intensity))
+
+        # fields = [
+        #     PointField(name='x', offset=0,  datatype=PointField.FLOAT32, count=1),
+        #     PointField(name='y', offset=4,  datatype=PointField.FLOAT32, count=1),
+        #     PointField(name='z', offset=8,  datatype=PointField.FLOAT32, count=1),
+        #     PointField(name='intensity', offset=12, datatype=PointField.FLOAT32, count=1),
+        # ]
+
+        # cloud_msg = point_cloud2.create_cloud(
+        #     header,
+        #     fields,
+        #     points.astype(np.float32)
+        # )
+
+        # publisher.publish(cloud_msg)
         
     def crop_global_map_in_FOV(self, pose_estimation):
         T_odom_to_base_link = self.pose_to_mat(self.cur_odom.pose.pose)
@@ -143,7 +175,7 @@ class FastLIOLocalization(Node):
 
         header = self.cur_odom.header
         header.frame_id = "map"
-        self.publish_point_cloud(self.pub_submap, header, np.array(global_map_in_FOV.points)[::10])
+        # self.publish_point_cloud(self.pub_submap, header, np.array(global_map_in_FOV.points)[::10])
 
         return global_map_in_FOV
 
@@ -153,11 +185,12 @@ class FastLIOLocalization(Node):
         
         transformation, _ = self.registration_at_scale(scan_tobe_mapped, global_map_in_FOV, initial=pose_estimation, scale=5)
         
-        transformation, fitness = self.registration_at_scale(scan_tobe_mapped, global_map_in_FOV, initial=pose_estimation, scale=1)
+        # transformation, fitness = self.registration_at_scale(scan_tobe_mapped, global_map_in_FOV, initial=pose_estimation, scale=1)
+        transformation2, fitness = self.registration_at_scale(scan_tobe_mapped, global_map_in_FOV, initial=transformation, scale=1)
         
         # if fitness > self.get_parameter("localization_threshold").value:
-        self.T_map_to_odom = transformation
-        self.publish_odom(transformation)
+        self.T_map_to_odom = transformation2
+        self.publish_odom(transformation2)
         self.get_logger().warn(f"Fitness score {fitness} -----debug------")
         # else:
             # self.get_logger().warn(f"Fitness score {fitness} less than localization threshold {self.get_parameter('localization_threshold').value}")
@@ -181,7 +214,7 @@ class FastLIOLocalization(Node):
         pc = self.msg_to_array(msg)
         self.cur_scan = o3d.geometry.PointCloud()
         self.cur_scan.points = o3d.utility.Vector3dVector(pc)
-        self.publish_point_cloud(self.pub_pc_in_map, msg.header, pc)
+        # self.publish_point_cloud(self.pub_pc_in_map, msg.header, pc)
         
     def initialize_global_map(self): #, pc_msg):
         # self.global_map = o3d.geometry.PointCloud()
