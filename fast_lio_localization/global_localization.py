@@ -193,7 +193,7 @@ class FastLIOLocalization(Node):
         self.publish_odom(transformation2)
         self.get_logger().warn(f"Fitness score {fitness} -----debug------")
         # else:
-            # self.get_logger().warn(f"Fitness score {fitness} less than localization threshold {self.get_parameter('localization_threshold').value}")
+        #     self.get_logger().warn(f"Fitness score {fitness} less than localization threshold {self.get_parameter('localization_threshold').value}")
 
     def voxel_down_sample(self, pcd, voxel_size):
         # print(pcd)
